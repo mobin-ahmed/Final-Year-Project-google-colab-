@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Writer</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+    <!-- <link rel="stylesheet" href="{{url_for('static',filename='css/my-style.css')}}"> -->
+
+
+    <style>
+        .canvas{
+            border: 5px solid white;
+            border-radius: 15px;
+            background-color: gray;
+            width: 100%;
+        }
+        button{
+            margin: 3px;
+        }
+        div div{
+            margin: 3px;
+        }
+        .footerr{
+            text-align: center;
+            color: white; 
+            background-color: darkblue;
+            border: 3px solid white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container bg-primary" style="border: 5px solid skyblue;">
+
+        <div class="row">
+            <canvas class="canvas" id="canvas"></canvas>
+        </div>
+
+        <div class="row">
+            <input id="p" type="text" class="form-control" placeholder="Write the name that you have drawn">    
+        </div>
+
+        <div class="row">
+            <button class="btn btn-success" id="pushBtn">Push Data</button>
+            <button class="btn btn-light" id="refBtn">Refresh</button>
+            <button class="btn btn-danger" id="drawBtn">.....</button>   
+        </div>
+
+        <div class="footerr">
+            Developed By :<hr/>* Mobin Ahmed<br> & <br>* Palash Barmon
+        </div>
+    </div>
+
+
+    <script>
+
+
+
+        // coding part for mouse
+
+        // var xydata=[1,2,3,4,5,6];
+        var xx=[];
+        var yy=[];
+        window.addEventListener("load",()=>{
+            const canvas=document.querySelector("#canvas");
+            const ctx=canvas.getContext("2d");
+
+            canvas.height=window.innerHeight=600;
+            canvas.width=window.innerWidth=1000;
+
+            // ctx.fillRect(100,100,200,200);
+
+            let painting=false;
+
+            function startPosition(e){
+                painting=true;
+                draw(e);
+            }
+
+            function finishedPosition(){
+                painting=false;
+                ctx.beginPath()
+            }
+
+            function draw(e){
+                if(!painting) return;
+                ctx.linrWidth=10;
+                ctx.lineCap="round";
+                ctx.strokeStyle="white";
+
+                // arr1.push(e.clientX);
+                // arr2.push(e.clientY);
+                var x=e.clientX;
+                var y=e.clientY;
+
+                xx.push(x);
+                yy.push(y);
+
+                ctx.lineTo(e.clientX,e.clientY);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(e.clientX,e.clientY);
+
+            }
+
+            canvas.addEventListener("mousedown",startPosition);
+            canvas.addEventListener("mouseup",finishedPosition);
+            canvas.addEventListener("mousemove",draw);
+
+
+
+            // Set up touch events for mobile, etc
+            canvas.addEventListener("touchstart", function (e) {
+                mousePos = getTouchPos(canvas, e);
+                var touch = e.touches[0];
+                var mouseEvent = new MouseEvent("mousedown", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, true);
+            canvas.addEventListener("touchend", function (e) {
+                var mouseEvent = new MouseEvent("mouseup", {});
+                canvas.dispatchEvent(mouseEvent);
+            }, true);
+            canvas.addEventListener("touchmove", function (e) {
+                var touch = e.touches[0];
+                var mouseEvent = new MouseEvent("mousemove", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, true);
+
+            // Prevent scrolling when touching the canvas
+            document.body.addEventListener("touchstart", function (e) {
+                if (e.target == canvas) {
+                    e.preventDefault();
+                }
+            }, true);
+            document.body.addEventListener("touchend", function (e) {
+                if (e.target == canvas) {
+                    e.preventDefault();
+                }
+            }, true);
+            document.body.addEventListener("touchmove", function (e) {
+                if (e.target == canvas) {
+                    e.preventDefault();
+                }
+            }, true);
+
+            // Get the position of the mouse relative to the canvas
+            function getMousePos(canvasDom, mouseEvent) {
+                var rect = canvasDom.getBoundingClientRect();
+                return {
+                    x: mouseEvent.clientX - rect.left,
+                    y: mouseEvent.clientY - rect.top
+                };
+            }
+
+            // Get the position of a touch relative to the canvas
+            function getTouchPos(canvasDom, touchEvent) {
+                var rect = canvasDom.getBoundingClientRect();
+                return {
+                    x: touchEvent.touches[0].clientX - rect.left,
+                    y: touchEvent.touches[0].clientY - rect.top
+                };
+            }
+
+        });
+
+   
+
+
+        $("#pushBtn").click(function(e){
+
+            var dt1=JSON.stringify(xx);
+            var dt2=JSON.stringify(yy);
+            //console.log('dt='+dt);
+            var name=$("#p").val();
+            // console.log(name)
+            $.ajax({
+                url:'/saveData',
+                type: 'POST',
+                data:{
+                    'x':dt1,
+                    'y':dt2,
+                    'name':name
+                },
+                success: function(response){
+                    // console.log(response);
+                    window.alert("data recive succesfully");
+                    location.reload();
+                },
+                error: function(error){
+                    // console.log(error);
+                    window.alert("data recive failed");
+                    location.reload();
+                }
+            });
+            e.preventDefault();
+        });
+
+
+
+
+
+        $("#refBtn").click(function(){
+            location.reload();
+        });
+
+
+
+    </script>
+
+
+
+    
+    <!-- <script src="{{url_for('static',filename='js/jquery.min.js')}}"></script> -->
+    <!-- <script src="{{url_for('static',filename='js/my-script.js')}}"></script> -->
+</body>
+</html>

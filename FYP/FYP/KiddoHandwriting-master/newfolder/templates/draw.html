@@ -1,0 +1,311 @@
+
+<html>
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='bootstrap.css')}}">
+  
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<style>
+h1{
+text-align:center;
+color:white;
+
+
+}
+body{
+background-color:white;
+
+}
+
+#canvas{
+border: 1px solid ;
+background-color:white;
+/*width:80%;
+height: auto;*/
+}
+
+.button{
+padding:20px;
+margin:5px;
+
+}
+
+#canvas2{
+
+border: 1px solid ;
+background-color:white;
+
+}
+</style>
+
+
+<body>
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-3"></div>
+		<div class="col-md-6">
+			<form id="dform">
+         <label><h4>What you want to draw</h4></label>
+         <input type = "text" id="name" name = "name" class="form-control" />
+		 <labe>coordinates</labe>
+		 <input type="text" id="xcor" name="xcor" class="form-control"> 
+<!--          <label>Y</label>
+         <input type="text" id="ycor" name="ycor" class="form-control">
+		  -->
+		 <h1>Draw Any Shape</h1>
+		 
+		
+			<canvas id="canvas" style="border:1px solid" width="300" height="300"></canvas>
+
+			<div class='button'>
+			
+			<input type = "button" value = "submit" onclick="saveData()" class="btn btn-success" />
+			<button  type="button" id="clear" class="btn btn-danger" onclick="clearing()">Clear</button>
+
+			<button  type="button" id="clear" class="btn btn-info" onclick="drawing()">Draw</button>
+
+			<button  type="button" id="gene" class="btn btn-info" onclick="generating()">Generate</button>
+
+			</div>
+			
+		</form>
+		</div>
+	</div>
+
+</div>
+
+</body>
+</html>
+
+<script>
+		function saveData(){
+			
+			var aText="";
+				var name=$("#name").val();
+		    	var x=$("#xcor").val();
+		    	// var y=$("#ycor").val();
+		    	var mysrdata=$("#dform").serialize();
+		    	if(name.trim()==""){
+		    		aText +="Name Is Requred \n";
+		    	}
+		    	// if(x.trim()==""){
+		    	// 	aText +="x Is Requred \n";
+		    	// }if(y.trim()==""){
+		    	// 	aText +="y Is Requred \n";
+		    	// }
+		    	if(aText==""){
+
+		        var url = "/result";
+			    $.ajax({
+			        type: 'post',
+			        url: url,
+			        data: mysrdata,
+			        dataType: 'json',
+			        cache:false,
+			        success: function (response) {
+			        	window.alert("data recive succesfully");
+			        	location.reload();
+			        }
+			    });
+			}else{
+				alert(aText);
+			}
+		}
+
+	function drawing(){
+
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d");
+		ctx.fillStyle = "#FF0000";
+
+		var url = "/art";
+			    $.ajax({
+			        type: 'post',
+			        url: url,
+			        dataType: 'json',
+			        cache:false,
+			        success: function (response) {
+			        	  data=(response[0]);
+			        	  var drawString=response[0].split(',');
+			        	  var drawArrayOne=drawString.slice(0, drawString.length / 2);
+			        	  var drawArrayTwo=drawString.slice(drawString.length / 2);
+			        	  // console.log(drawString);
+			        	  console.log(drawArrayOne);
+			        	  // console.log(drawArrayTwo);
+
+                    
+
+			        	  for(var i=0; i<drawArrayOne.length; i++){
+
+			        	  	if(i==0){
+			        	  		ctx.moveTo(drawArrayOne[i], drawArrayTwo[i]);
+			        	  		
+
+			        	  	}else{
+			        	  		console.log(drawArrayOne[i], drawArrayTwo[i])
+			        	  		ctx.lineTo(drawArrayOne[i], drawArrayTwo[i]);
+
+
+			        	  	}
+
+			        	  	
+			        	  }
+
+			        	  ctx.stroke();
+
+
+
+			}
+			
+		})
+
+} 
+
+function generating(){
+	var url = "/shape";
+			    $.ajax({
+			        type: 'post',
+			        url: url,
+			        dataType: 'json',
+			        cache:false,
+			        success: function (response) {
+			        	window.alert("Generated data recive succesfully");
+			        }
+			    })
+
+}
+
+
+
+
+
+///////////////////////////////Draw in Canvas/////////////////////////////
+
+                            
+var x1=[];
+// var y1=[];
+(function() {
+	
+	// Get a regular interval for drawing to the screen
+	window.requestAnimFrame = (function (callback) {
+		return window.requestAnimationFrame || 
+					window.webkitRequestAnimationFrame ||
+					window.mozRequestAnimationFrame ||
+					window.oRequestAnimationFrame ||
+					window.msRequestAnimaitonFrame ||
+					function (callback) {
+					 	window.setTimeout(callback, 1000/60);
+					};
+	})();
+
+	// Set up the canvas
+	var canvas = document.getElementById("canvas");
+	var ctx = canvas.getContext("2d");
+	ctx.strokeStyle = "#222222";
+	ctx.lineWith = 2;
+	// Set up mouse events for drawing
+	var drawing = false;
+	var mousePos = { x:0, y:0 };
+	var lastPos = mousePos;
+	canvas.addEventListener("mousedown", function (e) {
+		drawing = true;
+		lastPos = getMousePos(canvas, e);
+	}, false);
+	canvas.addEventListener("mouseup", function (e) {
+		drawing = false;
+	}, false);
+	canvas.addEventListener("mousemove", function (e) {
+		mousePos = getMousePos(canvas, e);
+	}, false);
+
+	// Set up touch events for mobile, etc
+	canvas.addEventListener("touchstart", function (e) {
+		mousePos = getTouchPos(canvas, e);
+		var touch = e.touches[0];
+		var mouseEvent = new MouseEvent("mousedown", {
+			clientX: touch.clientX,
+			clientY: touch.clientY
+		});
+		canvas.dispatchEvent(mouseEvent);
+	}, false);
+	canvas.addEventListener("touchend", function (e) {
+		var mouseEvent = new MouseEvent("mouseup", {});
+		canvas.dispatchEvent(mouseEvent);
+	}, false);
+	canvas.addEventListener("touchmove", function (e) {
+		var touch = e.touches[0];
+		var mouseEvent = new MouseEvent("mousemove", {
+			clientX: touch.clientX,
+			clientY: touch.clientY
+		});
+		canvas.dispatchEvent(mouseEvent);
+	}, false);
+
+	// Prevent scrolling when touching the canvas
+	document.body.addEventListener("touchstart", function (e) {
+		if (e.target == canvas) {
+			e.preventDefault();
+		}
+	}, false);
+	document.body.addEventListener("touchend", function (e) {
+		if (e.target == canvas) {
+			e.preventDefault();
+		}
+	}, false);
+	document.body.addEventListener("touchmove", function (e) {
+		if (e.target == canvas) {
+			e.preventDefault();
+		}
+	}, false);
+
+	// Get the position of the mouse relative to the canvas
+	function getMousePos(canvasDom, mouseEvent) {
+		var rect = canvasDom.getBoundingClientRect();
+		return {
+			x: mouseEvent.clientX - rect.left,
+			y: mouseEvent.clientY - rect.top
+		};
+	}
+
+	// Get the position of a touch relative to the canvas
+	function getTouchPos(canvasDom, touchEvent) {
+		var rect = canvasDom.getBoundingClientRect();
+		return {
+			x: touchEvent.touches[0].clientX - rect.left,
+			y: touchEvent.touches[0].clientY - rect.top
+		};
+	}
+
+	// Draw to the canvas
+	function renderCanvas() {
+		if (drawing) {
+			ctx.moveTo(lastPos.x, lastPos.y);
+			ctx.lineTo(mousePos.x, mousePos.y);
+			ctx.stroke();
+			lastPos = mousePos;
+
+			x1.push(mousePos.x)
+			x1.push(mousePos.y)
+			document.getElementById("xcor").value=x1;
+			// document.getElementById("ycor").value=y1;
+		}
+	}
+
+	// Allow for animation
+	(function drawLoop () {
+		requestAnimFrame(drawLoop);
+		renderCanvas();
+	})();
+
+})();
+
+
+function clearing(){
+	location.reload();
+}
+
+
+</script> 

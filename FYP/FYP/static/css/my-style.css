@@ -1,0 +1,13 @@
+$desktop=1200px; //xl
+$laptop=992px; //lg
+$tablet=768px; //md
+$phone=480px;  //sm
+
+@media only screen and (max-width:$phone){
+
+}
+
+.canvas{
+    border: 2px solid black;
+    background-color: blue;
+}
